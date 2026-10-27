@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RootLab — Numerical Methods Explorer</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a30;--text:#eef3ff;--muted:#a8b5d1;--accent:#67e8f9;--green:#86efac;--red:#fca5a5;--line:#2a3858;--yellow:#fde68a}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at top right,#1d3760 0,transparent 34%),var(--bg);color:var(--text);line-height:1.5}
+header{padding:34px 20px 26px;text-align:center;border-bottom:1px solid var(--line)}.eyebrow{color:var(--accent);font-weight:800;letter-spacing:2px;font-size:.78rem;text-transform:uppercase}h1{font-size:clamp(2rem,5vw,3.5rem);margin:8px 0}.subtitle{max-width:780px;margin:0 auto;color:var(--muted)}
+main{max-width:1120px;margin:24px auto;padding:0 16px 42px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}.card{background:linear-gradient(145deg,var(--panel),#10172a);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 12px 30px #0002}
+h2{font-size:1.2rem;margin:0 0 12px}h3{font-size:1rem;margin:18px 0 8px;color:var(--accent)}p{color:var(--muted);margin:8px 0}.pill{display:inline-block;background:#18384a;color:var(--accent);padding:4px 9px;border-radius:999px;font-size:.78rem;font-weight:700}
+label{display:block;color:var(--muted);font-size:.9rem;margin:10px 0 5px}input,select{width:100%;background:#0a1122;color:var(--text);border:1px solid #354666;border-radius:10px;padding:11px;font-size:1rem}
+button{background:var(--accent);color:#08202b;font-weight:800;border:0;border-radius:10px;padding:11px 15px;cursor:pointer;margin:12px 8px 0 0}button:hover{filter:brightness(1.08)}button.secondary{background:#243654;color:var(--text);border:1px solid #3c5276}
+.result{background:#0a1122;border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px}.big{font-size:1.45rem;font-weight:900}.true{color:var(--green)}.false{color:var(--red)}.formula{font-family:Consolas,monospace;background:#08101e;padding:12px;border-radius:10px;color:#d8e9ff;overflow-wrap:anywhere;margin:8px 0}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.92rem}th,td{padding:9px 10px;text-align:center;border-bottom:1px solid var(--line)}th{color:var(--accent);background:#17223d}tr:last-child td{border-bottom:0}
+.note{border-left:3px solid var(--accent);padding:10px 13px;background:#102238;border-radius:0 10px 10px 0;color:#dce8ff;margin-top:14px}
+canvas{width:100%;height:260px;background:#08101e;border:1px solid var(--line);border-radius:12px;margin-top:12px}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px}.metric{padding:10px;background:#0a1122;border:1px solid var(--line);border-radius:10px}.metric small{display:block;color:var(--muted)}.metric strong{font-size:1.1rem}
+footer{text-align:center;color:var(--muted);padding:20px;border-top:1px solid var(--line);font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">Foundation of Mathematics · Innovative Assignment · Unit 2</div>
+<h1>RootLab</h1>
+<p class="subtitle">Numerical Methods Explorer — find approximate roots of equations, compare Bisection and Newton–Raphson, and visualize how the error decreases with each iteration.</p>
+</header>
+<main>
+<div class="grid">
+<section class="card">
+<span class="pill">INTERACTIVE TOOL</span>
+<h2 style="margin-top:10px">1. Choose an equation</h2>
+<p>Select a sample equation. The tool finds a root where f(x) = 0.</p>
+<label for="func">Function f(x)</label>
+<select id="func" onchange="resetTool()">
+<option value="poly">x³ − x − 2</option>
+<option value="square">x² − 2</option>
+<option value="cos">cos(x) − x</option>
+<option value="cubic">x³ − 2x − 5</option>
+</select>
+<div class="note">Angles in the cosine example are measured in radians. For Bisection, choose an interval where f(a) and f(b) have opposite signs.</div>
+<label for="tol">Tolerance (allowed error)</label>
+<select id="tol"><option value="0.01">0.01</option><option value="0.001" selected>0.001</option><option value="0.0001">0.0001</option></select>
+<h3>Equation preview</h3><div id="eq" class="formula">f(x) = x³ − x − 2</div>
+</section>
+<section class="card">
+<h2>2. Bisection Method</h2>
+<p>Bisection repeatedly halves an interval that contains a sign change.</p>
+<label for="a">Starting value a</label><input id="a" type="number" step="any" value="1">
+<label for="b">Ending value b</label><input id="b" type="number" step="any" value="2">
+<button onclick="runBisection()">Run Bisection</button><button class="secondary" onclick="resetTool()">Reset</button>
+<div id="bisResult" class="result"><p>Run the method to see the approximate root and iteration history.</p></div>
+</section>
+<section class="card">
+<h2>3. Newton–Raphson Method</h2>
+<p>Newton–Raphson uses the derivative to make a new estimate.</p>
+<label for="x0">Initial guess x₀</label><input id="x0" type="number" step="any" value="1.5">
+<button onclick="runNewton()">Run Newton–Raphson</button>
+<div id="newResult" class="result"><p>Choose an initial guess and run the method.</p></div>
+</section>
+<section class="card">
+<h2>4. Error Comparison</h2>
+<p>The graph compares the absolute change between consecutive estimates for the most recent run of each method.</p>
+<canvas id="chart" width="800" height="300" aria-label="Iteration error chart"></canvas>
+<div id="chartNote" class="note">Run one or both methods to draw the error comparison.</div>
+</section>
+</div>
+<section class="card" style="margin-top:16px">
+<h2>5. Iteration table</h2><p>Each row shows the estimates produced by the selected numerical method.</p>
+<label for="whichTable">Show method</label><select id="whichTable" onchange="renderTable()"><option value="bis">Bisection</option><option value="new">Newton–Raphson</option></select>
+<div id="historyTable"><p>Run a method to generate its iteration table.</p></div>
+</section>
+<section class="card" style="margin-top:16px">
+<h2>Assignment details</h2>
+<p><strong>Chosen unit:</strong> Numerical Methods (Unit 2)</p>
+<p><strong>Objective:</strong> Build an interactive tool that approximates equation roots using Bisection and Newton–Raphson and compares their convergence.</p>
+<p><strong>Mathematical concepts:</strong> Root finding, interval halving, derivatives, iterative approximation, tolerance, and absolute error.</p>
+<p><strong>Application in computing:</strong> Numerical methods are used in engineering simulations, scientific computing, graphics, optimization, and calculations where exact symbolic solutions may be difficult.</p>
+<p><strong>What I learned:</strong> Bisection is reliable when the interval brackets a root, while Newton–Raphson can converge faster with a good initial guess but may fail if the derivative is zero or the guess is unsuitable.</p>
+<div class="note">Submission: save this HTML file and email it to your FM faculty. Add your name, enrolment number, programme, semester, and division in the email. You can also take screenshots showing both methods and the graph.</div>
+</section>
+</main>
+<footer>RootLab · Unit 2: Numerical Methods · Interactive mathematical computing</footer>
+<script>
+const functionsMap={
+ poly:{label:'x³ − x − 2',f:x=>x*x*x-x-2,df:x=>3*x*x-1,defaultA:1,defaultB:2,guess:1.5},
+ square:{label:'x² − 2',f:x=>x*x-2,df:x=>2*x,defaultA:1,defaultB:2,guess:1.4},
+ cos:{label:'cos(x) − x',f:x=>Math.cos(x)-x,df:x=>-Math.sin(x)-1,defaultA:0,defaultB:1,guess:0.7},
+ cubic:{label:'x³ − 2x − 5',f:x=>x*x*x-2*x-5,df:x=>3*x*x-2,defaultA:2,defaultB:3,guess:2}
+};
+let histories={bis:[],new:[]},errors={bis:[],new:[]},roots={bis:null,new:null};
+function cfg(){return functionsMap[document.getElementById('func').value]}
+function fmt(x){return Number.isFinite(x)?Number(x).toPrecision(8).replace(/\.?0+$/,''):String(x)}
+function resetTool(){
+ const c=cfg();document.getElementById('eq').textContent='f(x) = '+c.label;
+ document.getElementById('a').value=c.defaultA;document.getElementById('b').value=c.defaultB;document.getElementById('x0').value=c.guess;
+ histories={bis:[],new:[]};errors={bis:[],new:[]};roots={bis:null,new:null};
+ document.getElementById('bisResult').innerHTML='<p>Run the method to see the approximate root and iteration history.</p>';
+ document.getElementById('newResult').innerHTML='<p>Choose an initial guess and run the method.</p>';
+ document.getElementById('historyTable').innerHTML='<p>Run a method to generate its iteration table.</p>';
+ document.getElementById('chartNote').textContent='Run one or both methods to draw the error comparison.';drawChart();
+}
+function tol(){return Number(document.getElementById('tol').value)}
+function runBisection(){
+ const c=cfg();let a=Number(document.getElementById('a').value),b=Number(document.getElementById('b').value);
+ histories.bis=[];errors.bis=[];roots.bis=null;
+ if(!Number.isFinite(a)||!Number.isFinite(b)||a>=b){document.getElementById('bisResult').innerHTML='<p class="false">Invalid interval. Ensure a &lt; b.</p>';return}
+ let fa=c.f(a),fb=c.f(b);
+ if(fa===0){roots.bis=a;histories.bis.push({i:0,a,b,x:a,fx:0,error:0});finish('bis','Exact root found at a.');return}
+ if(fb===0){roots.bis=b;histories.bis.push({i:0,a,b,x:b,fx:0,error:0});finish('bis','Exact root found at b.');return}
+ if(fa*fb>0){document.getElementById('bisResult').innerHTML='<p class="false">No sign change in this interval. Choose a and b so f(a) and f(b) have opposite signs.</p>';return}
+ let prev=null,x,fx,err=Infinity;
+ for(let i=1;i<=100;i++){
+   x=(a+b)/2;fx=c.f(x);err=prev===null?Math.abs(b-a)/2:Math.abs(x-prev);
+   histories.bis.push({i,a,b,x,fx,error:err});errors.bis.push(err);
+   if(Math.abs(fx)<tol()||err<tol())break;
+   if(fa*fx<0){b=x;fb=fx}else{a=x;fa=fx}
+   prev=x;
+ }
+ roots.bis=x;finish('bis','Bisection completed.');
+}
+function runNewton(){
+ const c=cfg();let x=Number(document.getElementById('x0').value);
+ histories.new=[];errors.new=[];roots.new=null;
+ if(!Number.isFinite(x)){document.getElementById('newResult').innerHTML='<p class="false">Enter a valid initial guess.</p>';return}
+ let prev=null,fx,err=Infinity,failed='';
+ for(let i=0;i<100;i++){
+   fx=c.f(x);err=prev===null?Math.abs(fx):Math.abs(x-prev);
+   histories.new.push({i:i+1,x,fx,error:err});
+   errors.new.push(err);
+   if(Math.abs(fx)<tol()||(prev!==null&&err<tol()))break;
+   const d=c.df(x);
+   if(!Number.isFinite(d)||Math.abs(d)<1e-12){failed='Derivative is zero or too close to zero; choose another initial guess.';break}
+   const next=x-fx/d;
+   if(!Number.isFinite(next)||Math.abs(next)>1e10){failed='The estimate diverged; choose another initial guess.';break}
+   prev=x;x=next;
+ }
+ roots.new=histories.new.length?histories.new[histories.new.length-1].x:null;
+ finish('new',failed||'Newton–Raphson completed.');
+}
+function finish(which,msg){
+ const root=roots[which],c=cfg(),fx=root===null?NaN:c.f(root),ok=Number.isFinite(fx)&&Math.abs(fx)<Math.max(tol()*10,1e-8);
+ const box=document.getElementById(which==='bis'?'bisResult':'newResult');
+ box.innerHTML=`<div class="big ${ok?'true':'false'}">Approximate root: ${root===null?'—':fmt(root)}</div><p>f(root) = ${fmt(fx)}</p><p>Iterations: ${histories[which].length}</p><p>${msg}</p>`;
+ document.getElementById('whichTable').value=which;renderTable();drawChart();
+ document.getElementById('chartNote').textContent='Smaller absolute change generally indicates convergence. The two methods may need different numbers of iterations.';
+}
+function renderTable(){
+ const key=document.getElementById('whichTable').value,rows=histories[key];if(!rows.length){document.getElementById('historyTable').innerHTML='<p>Run this method to generate its iteration table.</p>';return}
+ let head=key==='bis'?'<tr><th>Iteration</th><th>a</th><th>b</th><th>Midpoint x</th><th>f(x)</th><th>Error</th></tr>':'<tr><th>Iteration</th><th>Estimate x</th><th>f(x)</th><th>Error</th></tr>';
+ let body=rows.map(r=>key==='bis'?`<tr><td>${r.i}</td><td>${fmt(r.a)}</td><td>${fmt(r.b)}</td><td>${fmt(r.x)}</td><td>${fmt(r.fx)}</td><td>${fmt(r.error)}</td></tr>`:`<tr><td>${r.i}</td><td>${fmt(r.x)}</td><td>${fmt(r.fx)}</td><td>${fmt(r.error)}</td></tr>`).join('');
+ document.getElementById('historyTable').innerHTML=`<table><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+function drawChart(){
+ const canvas=document.getElementById('chart'),ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
+ const vals=[...errors.bis,...errors.new].filter(v=>Number.isFinite(v)&&v>0);
+ ctx.strokeStyle='#2a3858';ctx.lineWidth=1;
+ for(let i=0;i<6;i++){const y=20+i*(h-50)/5;ctx.beginPath();ctx.moveTo(55,y);ctx.lineTo(w-20,y);ctx.stroke()}
+ ctx.fillStyle='#a8b5d1';ctx.font='13px Arial';ctx.fillText('Absolute change (log scale)',12,16);ctx.fillText('Iteration →',w-110,h-8);
+ if(!vals.length){ctx.fillText('Run a method to display convergence.',w/2-120,h/2);return}
+ const minLog=Math.min(...vals.map(v=>Math.log10(v))),maxLog=Math.max(...vals.map(v=>Math.log10(v))),range=maxLog-minLog||1;
+ const plot=(arr,label,color)=>{
+   if(!arr.length)return;ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();
+   arr.forEach((v,i)=>{const x=55+(i/Math.max(1,arr.length-1))*(w-85);const y=25+(maxLog-Math.log10(Math.max(v,1e-16)))/range*(h-65);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();
+   ctx.fillStyle=color;ctx.fillText(label,w-150,label==='Bisection'?28:46);
+ };
+ plot(errors.bis,'Bisection','#67e8f9');plot(errors.new,'Newton–Raphson','#86efac');
+}
+drawChart();
+</script>
+</body>
+</html>
